@@ -1,0 +1,241 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<style>
+    /* Container Principal */
+    .multi-post-container {
+        max-width: 900px;
+        margin: 0 auto;
+        color: white;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Card de Entrada (Formulário) */
+    .input-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(253, 253, 150, 0.1);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .input-group { margin-bottom: 15px; }
+    .input-group label { display: block; color: var(--amarelo-pastoso); margin-bottom: 5px; font-size: 0.9em; }
+
+    /* Sistema de Abas (Tabs) */
+    .tabs-container {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 15px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .tabs-header {
+        display: flex;
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .tab-btn {
+        flex: 1;
+        padding: 15px;
+        background: none;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border-bottom: 2px solid transparent;
+    }
+
+    .tab-btn:hover { color: white; background: rgba(255,255,255,0.02); }
+    
+    /* Cores Ativas das Abas */
+    .tab-btn.active.insta { color: #e1306c; border-bottom-color: #e1306c; background: rgba(225, 48, 108, 0.05); }
+    .tab-btn.active.whats { color: #25d366; border-bottom-color: #25d366; background: rgba(37, 211, 102, 0.05); }
+    .tab-btn.active.face { color: #1877f2; border-bottom-color: #1877f2; background: rgba(24, 119, 242, 0.05); }
+
+    /* Conteúdo das Abas */
+    .tab-content { display: none; padding: 25px; animation: fadeIn 0.5s; }
+    .tab-content.active { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Área de Texto e Botões */
+    .post-textarea {
+        width: 100%;
+        background: rgba(0,0,0,0.2);
+        border: 1px solid #333;
+        color: #eee;
+        border-radius: 10px;
+        padding: 15px;
+        font-size: 0.95em;
+        line-height: 1.6;
+        resize: vertical;
+        margin-bottom: 15px;
+    }
+    
+    .post-textarea:focus { border-color: var(--amarelo-pastoso); outline: none; }
+
+    .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+    
+    .btn-action {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        min-width: 150px;
+    }
+
+    .btn-action:hover { opacity: 0.9; transform: translateY(-2px); }
+
+    /* Estilos Específicos dos Botões */
+    .btn-copy { background: rgba(253, 253, 150, 0.1); color: var(--amarelo-pastoso); border: 1px solid rgba(253, 253, 150, 0.2); }
+    .btn-copy:hover { background: rgba(253, 253, 150, 0.2); }
+    
+    .btn-social.insta { background: #e1306c; color: white; }
+    .btn-social.whats { background: #25d366; color: white; }
+    .btn-social.face { background: #1877f2; color: white; }
+
+</style>
+
+<div class="multi-post-container">
+    <div class="d-flex align-items-center gap-3 margin-bottom: 25px;">
+        <span style="font-size: 2rem;">🚀</span>
+        <div>
+            <h2 style="color: var(--amarelo-pastoso); margin: 0;">Multi-Post Social</h2>
+            <p style="color: #aaa; margin: 0; font-size: 0.9em;">Sua central de distribuição viral. Um título, todas as redes.</p>
+        </div>
+    </div>
+
+    <div class="input-card">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 input-group">
+                    <label>Título do Vídeo</label>
+                    <input type="text" name="titulo" placeholder="Ex: O Segredo do CTR Alto..." class="input-calc" value="{{ titulo_video }}" required>
+                </div>
+                <div class="col-md-6 input-group">
+                    <label>Link do Vídeo (Referência)</label>
+                    <input type="text" name="link" placeholder="https://youtu.be/..." class="input-calc" value="{{ link_video }}" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-calc">
+                🔮 Gerar Postagens com Inteligência Artificial
+            </button>
+        </form>
+    </div>
+
+    {% if posts.instagram or posts.whatsapp or posts.facebook %}
+    <div class="tabs-container">
+        <div class="tabs-header">
+            <button class="tab-btn active insta" onclick="openTab(event, 'tab-insta')">
+                <i class="fab fa-instagram"></i> Instagram
+            </button>
+            <button class="tab-btn whats" onclick="openTab(event, 'tab-whats')">
+                <i class="fab fa-whatsapp"></i> WhatsApp
+            </button>
+            <button class="tab-btn face" onclick="openTab(event, 'tab-facebook')">
+                <i class="fab fa-facebook-f"></i> Facebook
+            </button>
+        </div>
+
+        <div id="tab-insta" class="tab-content active">
+            <textarea id="text-insta" class="post-textarea" rows="10">{{ posts.instagram }}</textarea>
+            <div class="action-buttons">
+                <button class="btn-action btn-copy" onclick="copiarTexto('text-insta')">
+                    <i class="fas fa-copy"></i> Copiar Legenda
+                </button>
+                <a href="https://www.instagram.com/" target="_blank" class="btn-action btn-social insta">
+                    <i class="fab fa-instagram"></i> Abrir e Colar no Insta
+                </a>
+            </div>
+        </div>
+
+        <div id="tab-whats" class="tab-content">
+            <textarea id="text-whats" class="post-textarea" rows="10">{{ posts.whatsapp }}</textarea>
+            <div class="action-buttons">
+                <button class="btn-action btn-copy" onclick="copiarTexto('text-whats')">
+                    <i class="fas fa-copy"></i> Copiar Mensagem
+                </button>
+                <a href="https://web.whatsapp.com/" target="_blank" class="btn-action btn-social whats">
+                    <i class="fab fa-whatsapp"></i> Abrir e Colar no Whats
+                </a>
+            </div>
+        </div>
+
+        <div id="tab-facebook" class="tab-content">
+            <textarea id="text-face" class="post-textarea" rows="10">{{ posts.facebook }}</textarea>
+            <div class="action-buttons">
+                <button class="btn-action btn-copy" onclick="copiarTexto('text-face')">
+                    <i class="fas fa-copy"></i> Copiar Post
+                </button>
+                <a href="https://www.facebook.com/" target="_blank" class="btn-action btn-social face">
+                    <i class="fab fa-facebook-f"></i> Abrir e Colar no Face
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Lógica das Abas (Tabs)
+    function openTab(evt, tabId) {
+        var i, tabcontent, tablinks;
+        
+        // Esconde todo o conteúdo
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+            tabcontent[i].className = tabcontent[i].className.replace(" active", "");
+        }
+        
+        // Remove a classe 'active' de todos os botões
+        tablinks = document.getElementsByClassName("tab-btn");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        
+        // Mostra a aba atual e adiciona a classe 'active' ao botão que foi clicado
+        document.getElementById(tabId).style.display = "block";
+        document.getElementById(tabId).className += " active";
+        evt.currentTarget.className += " active";
+    }
+
+    // Função de Copiar
+    function copiarTexto(id) {
+        var copyText = document.getElementById(id);
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); // Para dispositivos móveis
+        document.execCommand("copy");
+        
+        // Feedback visual no botão
+        var btn = window.event.currentTarget;
+        var originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+        btn.style.background = 'rgba(37, 211, 102, 0.1)';
+        btn.style.color = '#25d366';
+        
+        setTimeout(function(){
+            btn.innerHTML = originalHTML;
+            btn.style.background = '';
+            btn.style.color = '';
+        }, 2000);
+    }
+</script>
+{% endblock %}

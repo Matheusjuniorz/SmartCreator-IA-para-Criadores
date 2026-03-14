@@ -1,0 +1,117 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<div style="max-width: 900px; width: 100%; margin: 0 auto; animation: fadeIn 0.5s ease;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h2 style="color: var(--amarelo-pastoso); margin: 0; font-size: 2rem;">
+                <i class="fas fa-comments"></i> Gerador de Comunidade
+            </h2>
+            <p style="color: var(--texto-suave); margin-top: 5px;">Crie engajamento infinito entre um vídeo e outro.</p>
+        </div>
+        <a href="{% url 'historico_roteiros' %}" style="text-decoration: none; color: var(--texto-suave); font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 8px;">
+            <i class="fas fa-history"></i> Ver Histórico
+        </a>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(253, 253, 150, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+        <form method="POST">
+            {% csrf_token %}
+            <div style="margin-bottom: 25px;">
+                <label style="color: var(--amarelo-pastoso); font-weight: 600; display: block; margin-bottom: 12px; font-size: 1.1rem;">
+                    Qual o tema ou ideia do post?
+                </label>
+                <textarea name="tema" rows="3" placeholder="Ex: Por que os aviões não voam sobre o Tibet? ou 'Pergunta sobre qual editor de vídeo eles preferem'..." 
+                    style="width: 100%; padding: 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; font-size: 1rem; outline: none; transition: 0.3s; resize: none;"
+                    onfocus="this.style.borderColor='var(--amarelo-pastoso)'" 
+                    onblur="this.style.borderColor='rgba(255,255,255,0.1)'">{{ tema }}</textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <button type="submit" name="tipo" value="enquete" class="btn-comu" style="--btn-color: #9d8fff;">
+                    <i class="fas fa-poll-h"></i> Criar Enquete Viral
+                </button>
+                <button type="submit" name="tipo" value="curiosidade" class="btn-comu" style="--btn-color: #0dcaf0;">
+                    <i class="fas fa-lightbulb"></i> Post de Curiosidade
+                </button>
+                <button type="submit" name="tipo" value="bastidores" class="btn-comu" style="--btn-color: #ffc107; --text-color: #000;">
+                    <i class="fas fa-camera-retro"></i> Hype / Bastidores
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if post_gerado %}
+    <div style="margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; flex-wrap: wrap;" id="resultado">
+        
+        <div>
+            <h4 style="color: var(--amarelo-pastoso); margin-bottom: 15px;">Conteúdo Gerado</h4>
+            <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.2); border-radius: 15px; padding: 20px; position: relative;">
+                <div id="textoPost" style="color: #eee; white-space: pre-wrap; line-height: 1.6; font-size: 0.95rem;">{{ post_gerado }}</div>
+                <button onclick="copiarTexto()" style="position: absolute; top: 10px; right: 10px; background: var(--amarelo-pastoso); border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.8rem;">
+                    Copiar 📋
+                </button>
+            </div>
+        </div>
+
+        <div class="no-mobile">
+            <h4 style="color: var(--texto-suave); margin-bottom: 15px;">Preview (Como fica no YouTube)</h4>
+            <div style="background: #0f0f0f; border-radius: 12px; padding: 15px; border: 1px solid #333;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                    <div style="width: 35px; height: 35px; background: #333; border-radius: 50%;"></div>
+                    <div style="color: white; font-size: 0.85rem; font-weight: bold;">Seu Canal • <span style="color: #aaa; font-weight: normal;">agora</span></div>
+                </div>
+                <div style="color: white; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">{{ post_gerado|truncatechars:300 }}</div>
+                <div style="display: flex; gap: 20px; color: #aaa; font-size: 0.8rem;">
+                    <span><i class="far fa-thumbs-up"></i> 0</span>
+                    <span><i class="far fa-thumbs-down"></i></span>
+                    <span><i class="far fa-comment"></i> COMENTAR</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .btn-comu {
+        border: none;
+        padding: 15px;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: var(--btn-color);
+        color: var(--text-color, white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    .btn-comu:hover {
+        transform: translateY(-3px);
+        filter: brightness(1.1);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+        #resultado { grid-template-columns: 1fr; }
+        .no-mobile { display: none; }
+    }
+</style>
+
+<script>
+    function copiarTexto() {
+        const text = document.getElementById('textoPost').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Copiado com sucesso! 🎉');
+        });
+    }
+</script>
+{% endblock %}

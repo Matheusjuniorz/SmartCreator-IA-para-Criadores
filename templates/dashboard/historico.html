@@ -1,0 +1,109 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<div style="max-width: 1100px; width: 100%; margin: 0 auto;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; flex-wrap: wrap; gap: 20px;">
+        <h2 style="color: var(--amarelo-pastoso); margin: 0; font-size: 2rem;">
+            <i class="fas fa-history"></i> Meus Roteiros
+        </h2>
+        <a href="{% url 'gerador_ia' %}" style="text-decoration: none; background: var(--amarelo-pastoso); color: #2c3e50; padding: 12px 25px; border-radius: 12px; font-weight: bold; box-shadow: 0 4px 15px rgba(253, 253, 150, 0.2); transition: 0.3s;">
+            <i class="fas fa-plus"></i> Novo Roteiro
+        </a>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="background: rgba(253, 253, 150, 0.05); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <th style="padding: 20px; color: var(--amarelo-pastoso); font-weight: 600;">Data</th>
+                        <th style="padding: 20px; color: var(--amarelo-pastoso); font-weight: 600;">Tema do Conteúdo</th>
+                        <th style="padding: 20px; color: var(--amarelo-pastoso); font-weight: 600;">Formato</th>
+                        <th style="padding: 20px; color: var(--amarelo-pastoso); font-weight: 600; text-align: right;">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in roteiros %}
+                    <tr class="row-hover" style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.3s;">
+                        <td style="padding: 15px 20px;">
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="color: white; font-weight: 500;">{{ r.data_criacao|date:"d/m/Y" }}</span>
+                                <small style="color: var(--texto-suave);">{{ r.data_criacao|date:"H:i" }}</small>
+                            </div>
+                        </td>
+                        <td style="padding: 15px 20px;">
+                            <div style="max-width: 400px; color: #eee; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ r.tema }}
+                            </div>
+                        </td>
+                        <td style="padding: 15px 20px;">
+                            {% if r.tipo == 'shorts' %}
+                                <span style="background: rgba(13, 202, 240, 0.15); color: #0dcaf0; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; border: 1px solid rgba(13, 202, 240, 0.2);">
+                                    📱 SHORTS
+                                </span>
+                            {% else %}
+                                <span style="background: rgba(114, 94, 255, 0.15); color: #9d8fff; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; border: 1px solid rgba(114, 94, 255, 0.2);">
+                                    🎬 LONGO
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 15px 20px; text-align: right;">
+                            <a href="{% url 'detalhe_roteiro' r.id %}" class="btn-action">
+                                Abrir <i class="fas fa-chevron-right" style="font-size: 0.8rem; margin-left: 5px;"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="padding: 60px; text-align: center; color: var(--texto-suave);">
+                            <i class="fas fa-folder-open" style="font-size: 2.5rem; margin-bottom: 15px; display: block; opacity: 0.5;"></i>
+                            <p>Nenhum roteiro encontrado no seu histórico.</p>
+                            <a href="{% url 'gerador_ia' %}" style="color: var(--amarelo-pastoso); text-decoration: underline;">Começar agora</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Hover Effects */
+    .row-hover:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+    
+    .btn-action {
+        text-decoration: none;
+        background: transparent;
+        color: var(--amarelo-pastoso);
+        border: 1px solid var(--amarelo-pastoso);
+        padding: 6px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .btn-action:hover {
+        background: var(--amarelo-pastoso);
+        color: #2c3e50;
+        box-shadow: 0 4px 12px rgba(253, 253, 150, 0.2);
+    }
+
+    /* Ajuste de Scroll para Mobile */
+    @media (max-width: 768px) {
+        table { min-width: 600px; }
+    }
+
+    /* Light Mode */
+    body.light .row-hover:hover { background: #f8f9fa; }
+    body.light tr { border-bottom: 1px solid #eee; }
+    body.light td { color: #2c3e50 !important; }
+    body.light th { background: #f1f1f1; }
+</style>
+{% endblock %}

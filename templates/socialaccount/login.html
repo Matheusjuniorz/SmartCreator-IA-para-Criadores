@@ -1,0 +1,37 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<div style="max-width: 450px; width: 100%; margin: 80px auto;">
+    
+    <div style="background: rgba(255,255,255,0.05); padding: 40px; border-radius: 24px; border: 1px solid rgba(253, 253, 150, 0.2); backdrop-filter: blur(10px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center;">
+        
+        <div style="margin-bottom: 30px;">
+            <div style="font-size: 3rem; margin-bottom: 15px;">🌐</div>
+            <h2 style="color: var(--amarelo-pastoso); margin: 0; font-size: 1.8rem; font-weight: 700;">Entrar via Google</h2>
+            <p style="color: #bbb; margin-top: 10px;">Você está prestes a conectar sua conta do Google ao SmartCreator.</p>
+        </div>
+
+        <form method="post" style="display: flex; flex-direction: column; gap: 15px;">
+            {% csrf_token %}
+            
+            <button type="submit" class="btn-entrar" style="width: 100%; background: var(--amarelo-pastoso); color: #2c3e50; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.3s;">
+                Confirmar e Continuar
+            </button>
+        </form>
+        
+        <div style="margin-top: 25px;">
+            <a href="{% url 'account_login' %}" style="color: var(--texto-suave); text-decoration: none; font-size: 0.9rem; opacity: 0.7;">
+                ← Cancelar e voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-entrar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(253, 253, 150, 0.2);
+        filter: brightness(1.1);
+    }
+</style>
+{% endblock %}

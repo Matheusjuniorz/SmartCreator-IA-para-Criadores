@@ -1,0 +1,102 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<div style="max-width: 450px; width: 100%; margin: 40px auto;">
+    
+    <div style="background: rgba(255,255,255,0.05); padding: 40px; border-radius: 24px; border: 1px solid rgba(253, 253, 150, 0.2); backdrop-filter: blur(10px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center;">
+        
+        <div style="margin-bottom: 30px;">
+            <h2 style="color: var(--amarelo-pastoso); margin: 0; font-size: 1.8rem; font-weight: 700;">Bem-vindo de volta</h2>
+            <p style="color: var(--texto-suave); margin-top: 10px;">Acesse sua fábrica de conteúdo viral</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;">
+            <a href="/accounts/google/login/" class="btn-social">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18" style="margin-right: 10px;">
+                Continuar com Google
+            </a>
+            <a href="/accounts/facebook/login/" class="btn-social" style="background: rgba(66, 103, 178, 0.1); border: 1px solid rgba(66, 103, 178, 0.4); color: #8b9dc3;">
+                <i class="fab fa-facebook-f" style="margin-right: 10px;"></i>
+                Facebook
+            </a>
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 25px;">
+            <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
+            <span style="padding: 0 15px; color: var(--texto-suave); font-size: 0.8rem; text-transform: uppercase;">ou e-mail</span>
+            <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
+        </div>
+
+        <form method="POST" action="{% url 'account_login' %}" style="display: flex; flex-direction: column; text-align: left; gap: 15px;">
+            {% csrf_token %}
+            
+            <div>
+                <label style="color: var(--amarelo-pastoso); font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; display: block;">E-mail</label>
+                <input type="email" name="login" placeholder="seu@email.com" required 
+                       style="width: 100%; padding: 12px 15px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; outline: none; transition: 0.3s;">
+            </div>
+
+            <div>
+                <label style="color: var(--amarelo-pastoso); font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; display: block;">Senha</label>
+                <input type="password" name="password" placeholder="••••••••" required 
+                       style="width: 100%; padding: 12px 15px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; outline: none; transition: 0.3s;">
+            </div>
+
+            <button type="submit" class="btn-entrar">
+                Entrar no SmartCreator
+            </button>
+        </form>
+        
+        <p style="margin-top: 25px; color: var(--texto-suave); font-size: 0.9rem;">
+            Ainda não tem conta? <a href="/accounts/signup/" style="color: var(--amarelo-pastoso); text-decoration: none; font-weight: bold;">Registre-se agora</a>
+        </p>
+    </div>
+</div>
+
+<style>
+    /* Estilos de inputs no foco */
+    input:focus {
+        border-color: var(--amarelo-pastoso) !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* Botão Entrar Principal */
+    .btn-entrar {
+        background: var(--amarelo-pastoso);
+        color: #2c3e50;
+        border: none;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: 0.3s;
+    }
+    .btn-entrar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(253, 253, 150, 0.2);
+        filter: brightness(1.1);
+    }
+
+    /* Botões Sociais */
+    .btn-social {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        padding: 12px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: 0.3s;
+    }
+    .btn-social:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,304 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+    :root {
+        --color-pendente: #6c757d;
+        --color-gravando: #0d6efd;
+        --color-editando: #0dcaf0;
+        --color-postado: #198754;
+        --color-danger: #ff4d4d;
+        --amarelo-pastoso: #fdfd96;
+        --roxo-ia: #6f42c1;
+        --neon-blue: #0dcaf0;
+        --neon-green: #25d366;
+        --card-bg: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Layout Base */
+    .dashboard-container { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+        gap: 20px; 
+        padding: 20px; 
+        width: 95%; 
+        max-width: 1300px; 
+        margin: 0 auto; 
+    }
+
+    .card { 
+        background: var(--card-bg); 
+        border: 1px solid rgba(253, 253, 150, 0.1); 
+        border-radius: 20px; 
+        padding: 25px; 
+        backdrop-filter: blur(10px);
+        position: relative;
+    }
+
+    .card h3 { color: var(--amarelo-pastoso); margin-top: 0; font-size: 1.1em; display: flex; align-items: center; gap: 10px; }
+    .stat-value { font-size: 2.2em; font-weight: bold; color: white; margin: 5px 0; }
+
+    /* Header e Botões */
+    .profile-header { width: 95%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center; margin: 20px auto; background: rgba(255, 255, 255, 0.03); padding: 15px 25px; border-radius: 20px; border: 1px solid rgba(253, 253, 150, 0.1); }
+    .btn-switch { color: var(--amarelo-pastoso); text-decoration: none; font-size: 0.85em; font-weight: bold; border: 1px solid rgba(253, 253, 150, 0.3); padding: 8px 16px; border-radius: 10px; }
+    .floating-btn { position: fixed; bottom: 30px; right: 30px; background: #ff0000; color: white; padding: 15px 25px; border-radius: 50px; text-decoration: none; font-weight: bold; z-index: 1000; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+
+    /* Fluxo de Produção */
+    .roteiro-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .badge-status { padding: 5px 12px; border-radius: 20px; font-size: 0.75em; font-weight: bold; }
+    .bg-pendente { background: var(--color-pendente); }
+    .bg-gravando { background: var(--color-gravando); }
+    .bg-editando { background: var(--color-editando); color: #000; }
+    .bg-postado { background: var(--color-postado); }
+
+    /* Tabelas */
+    .custom-table { width: 100%; border-collapse: collapse; color: white; font-size: 0.9em; }
+    .custom-table th { text-align: left; padding: 12px; color: #888; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .custom-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+    /* IA Response Box */
+    .ia-wrapper { margin-top: 10px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px dashed var(--roxo-ia); }
+    textarea { width: 100%; background: #111; color: white; border: 1px solid #333; padding: 10px; border-radius: 8px; resize: none; margin-bottom: 10px; }
+
+    /* Modal Estilizado (Simplificado para IA decidir) */
+    #modalEstrategia { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #121212; border: 1px solid var(--roxo-ia); padding: 30px; border-radius: 20px; z-index: 2000; width: 380px; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+    #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1999; backdrop-filter: blur(4px); }
+    .modal-input { width: 100%; padding: 12px; background: #1a1a1a; color: white; border: 1px solid #333; border-radius: 10px; margin-top: 5px; }
+
+    .btn-prever { width: 100%; background: var(--roxo-ia); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; transition: 0.3s; }
+    .btn-prever:hover { opacity: 0.8; }
+    .prediction-box { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; color: #ccc; font-size: 0.9em; min-height: 50px; border: 1px solid rgba(255,255,255,0.1); }
+</style>
+
+<div id="overlay" onclick="fecharModal()"></div>
+
+<div id="modalEstrategia">
+    <h3 style="color: var(--amarelo-pastoso); margin-bottom: 20px;">🤖 Definir Estratégia</h3>
+    <form id="formEstrategia">
+        {% csrf_token %}
+        <div style="margin-bottom: 15px;">
+            <label style="color:#888; font-size: 0.85em;">Nicho do Canal</label>
+            <select name="nicho" class="modal-input">
+                <option value="Tecnologia">💻 Tecnologia</option>
+                <option value="Games">🎮 Games</option>
+                <option value="Educação">📚 Educação</option>
+                <option value="Entretenimento">🎬 Entretenimento</option>
+            </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div>
+                <label style="color:#888; font-size: 0.85em;">Vídeos / Dia</label>
+                <input type="number" name="vids_dia" class="modal-input" value="1">
+            </div>
+            <div>
+                <label style="color:#888; font-size: 0.85em;">Vídeos / Semana</label>
+                <input type="number" name="vids_semana" class="modal-input" value="7">
+            </div>
+        </div>
+
+        <p style="color: #666; font-size: 0.75em; margin-bottom: 20px;">
+            ✨ Ao salvar, nossa IA definirá automaticamente os melhores horários e dias de pico para o seu nicho.
+        </p>
+
+        <button type="button" onclick="salvarAjax()" style="width:100%; background:var(--roxo-ia); color:white; padding:15px; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">
+            SALVAR E GERAR COM IA
+        </button>
+    </form>
+</div>
+
+<a href="https://studio.youtube.com/channel/{{ canal_id }}/videos/upload" target="_blank" class="floating-btn">🚀 POSTAR VÍDEO</a>
+
+<div style="width: 100%; padding-bottom: 80px;">
+    
+    <header class="profile-header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="{{ foto_perfil|default:'https://via.placeholder.com/50' }}" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--amarelo-pastoso);">
+            <div>
+                <h2 style="margin: 0; font-size: 1.2em; color: white;">{{ nome_canal|default:"Meu Canal" }}</h2>
+                <span style="color: var(--neon-green); font-size: 0.75em; font-weight: bold;">● CONECTADO</span>
+            </div>
+        </div>
+        <a href="/accounts/google/login/?process=connect" class="btn-switch">🔄 Trocar Canal</a>
+    </header>
+
+    <div class="dashboard-container">
+        <div class="card">
+            <h3><i class="fas fa-users"></i> Inscritos</h3>
+            <div class="stat-value">{{ inscritos|default:"0" }}</div>
+            <div style="height: 100px;"><canvas id="miniChart"></canvas></div>
+        </div>
+
+        <div class="card" style="grid-column: span 2;">
+            <h3>📈 Evolução do Canal</h3>
+            <div style="height: 200px;"><canvas id="growthChart"></canvas></div>
+        </div>
+
+        <div class="card">
+            <h3><i class="fas fa-brain"></i> Trend Predictor</h3>
+            <p style="color: #888; font-size: 0.8em; margin-bottom: 15px;">Previsão de busca do público para as próximas 48 horas.</p>
+            <button class="btn-prever" onclick="preverTrend()">🔮 PREVER PRÓXIMA TENDÊNCIA</button>
+            <div class="prediction-box" id="trend-result">
+                {{ tendencia|default:"Clique no botão para analisar" }}
+            </div>
+        </div>
+
+        <div class="card" style="grid-column: span 2;">
+            <h3><i class="fas fa-tasks"></i> Fluxo de Produção de Roteiros</h3>
+            <div style="margin-top: 15px;">
+                {% for roteiro in roteiros %}
+                <div class="roteiro-item">
+                    <div>
+                        <strong style="color: white;">{{ roteiro.tema }}</strong><br>
+                        <small style="color: #666;">Criado em {{ roteiro.data_criacao|date:"d/m/Y" }}</small>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span class="badge-status bg-{{ roteiro.status }}">{{ roteiro.status|upper }}</span>
+                        <a href="#" style="color: var(--color-danger); text-decoration: none;">🗑️</a>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="text-align: center; color: #555; padding: 20px;">Nenhum roteiro em produção.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card" style="border: 1px solid var(--roxo-ia);">
+            <button onclick="abrirModal()" style="position:absolute; top:15px; right:15px; background:none; border:none; color:var(--roxo-ia); cursor:pointer;"><i class="fas fa-cog"></i></button>
+            <h3><i class="fas fa-lightbulb"></i> IA Insights</h3>
+            <div style="margin: 10px 0;">
+                <span style="color: var(--amarelo-pastoso); font-weight: bold;">Meta:</span> 
+                <span style="color: white;">{{ configuracao.vids_dia|default:1 }} vídeo(s)/dia</span>
+            </div>
+            <div class="stat-value" style="color: var(--neon-blue); font-size: 1.8em;">
+                {{ configuracao.melhor_horario|default:"--:--" }}
+            </div>
+            <p style="color: #888; font-size: 0.8em;">
+                Estratégia otimizada para <b>{{ configuracao.nicho|default:"Geral" }}</b>.<br>
+                Pico semanal: <span style="color: var(--neon-green)">{{ configuracao.dia_pico|default:"Não definido" }}</span>
+            </p>
+        </div>
+
+        <div class="card" style="grid-column: span 2; border-top: 4px solid var(--neon-blue);">
+            <h3><i class="fas fa-crown"></i> Últimos Membros</h3>
+            <div style="overflow-x: auto;">
+                <table class="custom-table">
+                    <thead>
+                        <tr><th>Membro</th><th>Nível</th><th>Início</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for membro in membros %}
+                        <tr>
+                            <td style="display: flex; align-items: center; gap: 10px;">
+                                <img src="{{ membro.foto|default:'https://via.placeholder.com/30' }}" style="width: 30px; border-radius: 50%;">
+                                {{ membro.nome }}
+                            </td>
+                            <td style="color: var(--amarelo-pastoso);">{{ membro.nivel }}</td>
+                            <td>{{ membro.data_adesao|date:"d/m" }}</td>
+                            <td><span style="color: var(--neon-green);">● Ativo</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" style="text-align: center; color: #555; padding: 30px;">Ainda não possui membros.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card" style="grid-column: 1 / -1;">
+            <h3><i class="fas fa-comments"></i> Comentários Recentes</h3>
+            <table class="custom-table">
+                <thead>
+                    <tr><th>Usuário</th><th>Comentário</th><th>Sentimento</th><th>Ação</th></tr>
+                </thead>
+                <tbody>
+                    {% for com in ultimos_comentarios %}
+                    <tr>
+                        <td><strong>{{ com.autor }}</strong></td>
+                        <td style="max-width: 300px; color: #bbb;">{{ com.texto|safe|truncatechars:100 }}</td>
+                        <td><span style="padding: 2px 8px; border-radius: 5px; background: rgba(255,255,255,0.1);">{{ com.sentimento }}</span></td>
+                        <td><button onclick="$('#box-{{forloop.counter}}').slideToggle()" style="background:var(--roxo-ia); border:none; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">Responder</button></td>
+                    </tr>
+                    <tr id="box-{{forloop.counter}}" style="display:none;">
+                        <td colspan="4">
+                            <div class="ia-wrapper">
+                                <textarea id="text-{{forloop.counter}}" placeholder="IA pensando na resposta..."></textarea>
+                                <button style="background:var(--neon-green); border:none; padding:8px 15px; border-radius:5px; font-weight:bold;">🚀 Enviar ao YouTube</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" style="text-align: center; color: #555; padding: 20px;">Sem comentários.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function abrirModal() { $('#overlay, #modalEstrategia').fadeIn(); }
+    function fecharModal() { $('#overlay, #modalEstrategia').fadeOut(); }
+
+    function salvarAjax() {
+        $.ajax({
+            url: "{% url 'salvar_estrategia' %}",
+            type: "POST",
+            data: $('#formEstrategia').serialize(),
+            success: function(data) {
+                if(data.status === 'ok') {
+                    location.reload(); 
+                } else {
+                    alert("Erro ao salvar estratégia.");
+                }
+            },
+            error: function() {
+                alert("Erro crítico no servidor.");
+            }
+        });
+    }
+
+    function preverTrend() {
+        const btn = document.querySelector('.btn-prever');
+        const box = document.getElementById('trend-result');
+        btn.innerText = "⏳ ANALISANDO...";
+        setTimeout(() => {
+            box.innerText = "Tendência: Jogos de Simulação Realista (My Summer Car / BeamNG)";
+            btn.innerText = "🔮 PREVER PRÓXIMA TENDÊNCIA";
+        }, 1500);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Graficos
+        const ctxGrowth = document.getElementById('growthChart').getContext('2d');
+        new Chart(ctxGrowth, {
+            type: 'line',
+            data: {
+                labels: {{ labels_grafico|safe|default:"['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab']" }},
+                datasets: [{
+                    label: 'Visualizações',
+                    data: {{ dados_grafico|safe|default:"[10, 50, 30, 90, 40, 120, 80]" }},
+                    borderColor: '#fdfd96',
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(253, 253, 150, 0.05)'
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+
+        const ctxMini = document.getElementById('miniChart').getContext('2d');
+        new Chart(ctxMini, {
+            type: 'bar',
+            data: {
+                labels: ['', '', '', '', '', '', ''],
+                datasets: [{ data: [5, 10, 8, 15, 12, 20, 18], backgroundColor: '#0dcaf0' }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<div style="max-width: 700px; width: 100%; margin: 0 auto;">
+    <h2 style="color: var(--amarelo-pastoso); margin-bottom: 30px;">
+        <i class="fas fa-user-cog"></i> Configurações de Perfil
+    </h2>
+    
+    <form method="POST" enctype="multipart/form-data" style="background: rgba(0,0,0,0.3); padding: 40px; border-radius: 20px; border: 1px solid rgba(253,253,150,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        {% csrf_token %}
+        
+        <div style="text-align: center; margin-bottom: 35px;">
+            {% if perfil.foto %}
+                <img src="{{ perfil.foto.url }}" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid var(--amarelo-pastoso); box-shadow: 0 0 20px rgba(253,253,150,0.2);">
+            {% else %}
+                <div style="width: 140px; height: 140px; border-radius: 50%; background: #444; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 3rem; border: 4px solid #555;">
+                    <i class="fas fa-user"></i>
+                </div>
+            {% endif %}
+            
+            <div style="margin-top: 15px;">
+                <label for="foto" style="cursor: pointer; background: rgba(253,253,150,0.1); padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; color: var(--amarelo-pastoso); border: 1px solid var(--amarelo-pastoso);">
+                    <i class="fas fa-camera"></i> Trocar Foto
+                </label>
+                <input type="file" name="foto" id="foto" style="display: none;">
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">Nome de Exibição</label>
+                <input type="text" name="nome" value="{{ user.first_name }}" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">Telefone / WhatsApp</label>
+                <input type="text" name="telefone" value="{{ perfil.telefone|default:'' }}" placeholder="(00) 00000-0000" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+            </div>
+        </div>
+
+        <div style="margin-bottom: 30px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">E-mail da Conta</label>
+            <input type="email" name="email" value="{{ user.email }}" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin-bottom: 30px;">
+
+        <div style="display: flex; gap: 15px;">
+            <button type="submit" style="flex: 2; background: var(--amarelo-pastoso); color: #2c3e50; border: none; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem;">
+                Salvar Alterações
+            </button>
+            <a href="{% url 'dashboard_home' %}" style="flex: 1; text-align: center; background: rgba(255,255,255,0.1); color: white; text-decoration: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1rem;">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

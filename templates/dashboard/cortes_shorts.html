@@ -1,0 +1,180 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<div style="max-width: 1000px; width: 100%; margin: 0 auto;">
+
+    {% if "Limite atingido" not in cortes_html %}
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <h1 style="color: var(--amarelo-pastoso); margin: 0; font-size: 2rem;">
+                <i class="fas fa-mobile-alt"></i> Cortes Virais
+            </h1>
+            <div style="display: flex; align-items: center; gap: 15px; mt: 10px;">
+                <small style="color: var(--texto-suave);">Projeto: <strong>{{ roteiro_pai.tema }}</strong></small>
+                
+                <select id="select-status" onchange="alterarStatus(this.value)" 
+                        style="background: rgba(0,0,0,0.3); color: var(--amarelo-pastoso); border: 1px solid var(--amarelo-pastoso); border-radius: 6px; padding: 4px 10px; cursor: pointer;">
+                    <option value="pendente" {% if roteiro_pai.status == 'pendente' %}selected{% endif %}>⚪ Pendente</option>
+                    <option value="gravando" {% if roteiro_pai.status == 'gravando' %}selected{% endif %}>🎥 Gravando</option>
+                    <option value="editando" {% if roteiro_pai.status == 'editando' %}selected{% endif %}>✂️ Editando</option>
+                    <option value="postado" {% if roteiro_pai.status == 'postado' %}selected{% endif %}>✅ Postado</option>
+                </select>
+                <span id="status-save-msg" style="color: #2ecc71; font-size: 0.8rem; font-weight: bold;" class="d-none">Salvo!</span>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            {% if roteiro_pai.cortes_original %}
+            <button onclick="restaurarOriginal()" style="background: transparent; border: 1px solid #ff6b6b; color: #ff6b6b; padding: 8px 15px; border-radius: 8px; cursor: pointer; transition: 0.3s;">
+                Restaurar Original
+            </button>
+            {% endif %}
+            <a href="{% url 'detalhe_roteiro' roteiro_pai.id %}" style="text-decoration: none; background: rgba(255,255,255,0.1); color: white; padding: 8px 15px; border-radius: 8px; font-size: 0.9rem;">
+                Voltar
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px solid rgba(253, 253, 150, 0.1); overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
+        
+        <div style="padding: 35px;">
+            {% if "Limite atingido" in cortes_html %}
+                <div style="text-align: center; padding: 40px 0;">
+                    <div class="spinner" style="width: 50px; height: 50px; border: 5px solid rgba(253, 253, 150, 0.1); border-top: 5px solid var(--amarelo-pastoso); border-radius: 50%; margin: 0 auto 20px auto; animation: spin 1s linear infinite;"></div>
+                    <h2 style="color: var(--amarelo-pastoso);">IA Recarregando...</h2>
+                    <p style="color: var(--texto-suave);">Atingimos o limite de velocidade. Aguarde um instante para continuar.</p>
+                    <div style="font-size: 4rem; font-weight: bold; color: var(--amarelo-pastoso); margin: 20px 0;" id="timer">60</div>
+                    
+                    <div style="width: 100%; max-width: 400px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; margin: 0 auto; overflow: hidden;">
+                        <div id="api-progress" style="width: 0%; height: 100%; background: var(--amarelo-pastoso); transition: 1s linear;"></div>
+                    </div>
+                </div>
+
+                <script>
+                    let timeLeft = 60;
+                    let interval = setInterval(function() {
+                        timeLeft--;
+                        document.getElementById('timer').innerText = timeLeft;
+                        document.getElementById('api-progress').style.width = ((60 - timeLeft) / 60 * 100) + '%';
+                        if (timeLeft <= 0) { clearInterval(interval); location.reload(); }
+                    }, 1000);
+                </script>
+            {% else %}
+                <div id="area-texto">
+                    <div id="conteudo-renderizado" class="roteiro-renderizado">
+                        {{ cortes_html }}
+                    </div>
+                    <textarea id="editor-texto" class="d-none" 
+                              style="width: 100%; height: 500px; background: rgba(0,0,0,0.2); color: white; border: 1px solid var(--amarelo-pastoso); border-radius: 12px; padding: 20px; font-family: monospace; line-height: 1.6; resize: vertical;">{{ roteiro_pai.cortes_gerados }}</textarea>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if "Limite atingido" not in cortes_html %}
+        <div style="background: rgba(0,0,0,0.2); padding: 25px; border-top: 1px solid rgba(255,255,255,0.05);">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                <button class="btn-tool" onclick="copyCortes()" style="background: #0dcaf0; color: #000;">Copiar 📋</button>
+                <button id="btn-editar" class="btn-tool" onclick="toggleEdicao()" style="background: transparent; border: 1px solid var(--amarelo-pastoso); color: var(--amarelo-pastoso);">Editar ✏️</button>
+                <button class="btn-tool" onclick="toggleChecklist()" style="background: var(--amarelo-pastoso); color: #000;">Checklist 🎥</button>
+                <button class="btn-tool" onclick="location.reload()" style="background: transparent; border: 1px solid #0dcaf0; color: #0dcaf0;">Novo 🔄</button>
+            </div>
+
+            <div id="checklistArea" style="display: none; margin-top: 20px; padding: 20px; background: rgba(253, 253, 150, 0.05); border-radius: 12px; border: 1px solid rgba(253, 253, 150, 0.2);">
+                <h5 style="color: var(--amarelo-pastoso); margin-top: 0;"><i class="fas fa-check-double"></i> Dicas de Produção</h5>
+                <ul style="list-style: none; padding: 0; margin: 0; color: var(--texto-suave); font-size: 0.9rem;">
+                    <li style="margin-bottom: 8px;">✅ Limpe a lente da câmera.</li>
+                    <li style="margin-bottom: 8px;">✅ Use luz frontal (janela ou ring light).</li>
+                    <li style="margin-bottom: 8px;">✅ Enquadramento vertical (9:16).</li>
+                    <li>✅ Legendas dinâmicas aumentam a retenção em 40%.</li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .btn-tool {
+        padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s;
+    }
+    .btn-tool:hover { transform: translateY(-3px); filter: brightness(1.2); }
+
+    /* Estilo do Conteúdo IA */
+    .roteiro-renderizado { color: #eee; }
+    .roteiro-renderizado h1, .roteiro-renderizado h2 { color: var(--amarelo-pastoso); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-top: 25px; }
+    .roteiro-renderizado li { 
+        background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid var(--amarelo-pastoso);
+    }
+    
+    /* Modo Claro */
+    body.light .roteiro-renderizado { color: #2c3e50; }
+    body.light .roteiro-renderizado li { background: #fff; border: 1px solid #ddd; border-left: 4px solid #2c3e50; }
+    body.light #editor-texto { background: white; color: black; }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .d-none { display: none !important; }
+</style>
+
+<script>
+    let editando = false;
+
+    function toggleChecklist() {
+        const area = document.getElementById('checklistArea');
+        area.style.display = area.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function copyCortes() {
+        const text = editando ? document.getElementById('editor-texto').value : document.getElementById('conteudo-renderizado').innerText;
+        navigator.clipboard.writeText(text).then(() => alert('Cortes copiados para o clipboard!'));
+    }
+
+    function toggleEdicao() {
+        const renderizado = document.getElementById('conteudo-renderizado');
+        const editor = document.getElementById('editor-texto');
+        const btn = document.getElementById('btn-editar');
+
+        if (!editando) {
+            renderizado.classList.add('d-none');
+            editor.classList.remove('d-none');
+            btn.innerText = "Salvar ✅";
+            btn.style.background = "#2ecc71";
+            btn.style.color = "white";
+            editando = true;
+        } else {
+            // Lógica Ajax de salvamento enviando para a URL configurada
+            const novoConteudo = editor.value;
+            fetch("{% url 'salvar_edicao_cortes' roteiro_pai.id %}", {
+                method: "POST",
+                headers: { "X-CSRFToken": "{{ csrf_token }}", "Content-Type": "application/x-www-form-urlencoded" },
+                body: "conteudo=" + encodeURIComponent(novoConteudo)
+            }).then(response => { if (response.ok) location.reload(); });
+        }
+    }
+
+    function alterarStatus(novoStatus) {
+        const msg = document.getElementById('status-save-msg');
+        fetch("{% url 'atualizar_status_roteiro' roteiro_pai.id %}", {
+            method: "POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}", "Content-Type": "application/x-www-form-urlencoded" },
+            body: "status=" + novoStatus
+        }).then(response => {
+            if (response.ok) {
+                msg.classList.remove('d-none');
+                setTimeout(() => msg.classList.add('d-none'), 2000);
+            }
+        });
+    }
+
+    function restaurarOriginal() {
+        if (confirm("Apagar edições e voltar ao original da IA?")) {
+            const originalText = `{{ roteiro_pai.cortes_original|escapejs }}`;
+            fetch("{% url 'salvar_edicao_cortes' roteiro_pai.id %}", {
+                method: "POST",
+                headers: { "X-CSRFToken": "{{ csrf_token }}", "Content-Type": "application/x-www-form-urlencoded" },
+                body: "conteudo=" + encodeURIComponent(originalText)
+            }).then(response => { if (response.ok) location.reload(); });
+        }
+    }
+</script>
+{% endblock %}

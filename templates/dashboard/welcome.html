@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 700px; width: 100%; margin: 60px auto; text-align: center;">
+    
+    <div style="margin-bottom: 30px; animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        <div style="width: 100px; height: 100px; background: rgba(253, 253, 150, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; border: 2px solid var(--amarelo-pastoso);">
+            <i class="fas fa-rocket" style="font-size: 3rem; color: var(--amarelo-pastoso);"></i>
+        </div>
+    </div>
+
+    <h1 style="color: white; font-size: 2.5rem; font-weight: 800; margin-bottom: 15px;">
+        Bem-vindo ao <span style="color: var(--amarelo-pastoso);">SmartCreator!</span>
+    </h1>
+    
+    <p style="color: var(--texto-suave); font-size: 1.2rem; line-height: 1.6; max-width: 500px; margin: 0 auto 40px auto;">
+        Sua jornada para dominar o algoritmo do YouTube começa agora. Estamos prontos para transformar sua criação de conteúdo.
+    </p>
+
+    <div style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 40px; display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
+        <div style="text-align: left;">
+            <h5 style="color: white; margin: 0; font-size: 1.1rem;">Dicas exclusivas no Instagram</h5>
+            <p style="color: var(--amarelo-pastoso); margin: 5px 0 0 0; font-weight: bold; font-size: 1.2rem;">@smartcreator_ia</p>
+        </div>
+        <a href="https://instagram.com/smartcreator_ia" target="_blank" style="text-decoration: none; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; padding: 10px 20px; border-radius: 12px; font-weight: bold; font-size: 0.9rem;">
+            <i class="fab fa-instagram"></i> Seguir
+        </a>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
+        <a href="/accounts/login/" class="btn-welcome-main">
+            Acessar Minha Conta <i class="fas fa-chevron-right" style="margin-left: 10px;"></i>
+        </a>
+        <p style="color: var(--texto-suave); font-size: 0.9rem;">
+            Já tem acesso? <a href="/accounts/login/" style="color: var(--amarelo-pastoso); text-decoration: none; font-weight: bold;">Faça login aqui</a>
+        </p>
+    </div>
+</div>
+
+<style>
+    /* Estilos específicos desta página */
+    .btn-welcome-main {
+        text-decoration: none;
+        background: var(--amarelo-pastoso);
+        color: #2c3e50;
+        padding: 18px 45px;
+        border-radius: 15px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        transition: 0.3s;
+        box-shadow: 0 10px 25px rgba(253, 253, 150, 0.15);
+        display: inline-block; 
+    }
+
+    .btn-welcome-main:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(253, 253, 150, 0.3);
+        filter: brightness(1.1);
+    }
+
+    @keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.5); }
+        to { opacity: 1; transform: scale(1); }
+    }
+</style>
+{% endblock %}

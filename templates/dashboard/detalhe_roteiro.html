@@ -1,0 +1,144 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<div style="max-width: 1000px; width: 100%; margin: 0 auto;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;" class="no-print">
+        <a href="{% url 'historico_roteiros' %}" 
+           style="text-decoration: none; color: var(--texto-suave); font-size: 0.9rem; transition: 0.3s;">
+            <i class="fas fa-arrow-left"></i> Voltar ao Histórico
+        </a>
+        <a href="{% url 'gerar_shorts' roteiro_obj.id %}" 
+           style="text-decoration: none; background: #0dcaf0; color: #000; padding: 10px 20px; border-radius: 10px; font-weight: bold; box-shadow: 0 4px 15px rgba(13, 202, 240, 0.2); transition: 0.3s;">
+            <i class="fas fa-mobile-alt"></i> Gerar Cortes Virais (Shorts)
+        </a>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px solid var(--amarelo-pastoso); overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2);" class="print-container">
+        
+        <div style="background: rgba(253, 253, 150, 0.05); padding: 30px; border-bottom: 1px solid rgba(253, 253, 150, 0.1);" class="no-print">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                <div>
+                    <h2 style="color: var(--amarelo-pastoso); margin: 0; font-size: 1.8rem;">{{ roteiro_obj.tema }}</h2>
+                    <p style="color: var(--texto-suave); margin-top: 5px; font-size: 0.9rem;">
+                        <i class="far fa-calendar-alt"></i> {{ roteiro_obj.data_criacao|date:"d/m/Y H:i" }}
+                    </p>
+                </div>
+                <button onclick="window.print()" style="background: var(--amarelo-pastoso); color: #2c3e50; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                    <i class="fas fa-print"></i> Imprimir PDF
+                </button>
+            </div>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <button class="btn-copy-outline" onclick="copiarParte('titulos', 'Títulos')">Títulos 💡</button>
+                <button class="btn-copy-outline" onclick="copiarParte('descricao', 'Descrição')">Descrição 📝</button>
+                <button class="btn-copy-outline" onclick="copiarTags()">Tags 🏷️</button>
+                <button class="btn-copy-outline" onclick="copiarRoteiro()" style="background: rgba(255,255,255,0.1); border-color: white; color: white;">Roteiro Completo 📋</button>
+            </div>
+        </div>
+
+        <div class="roteiro-renderizado" id="areaRoteiro" style="padding: 40px; color: #eee; line-height: 1.8;">
+            <div class="d-print-only text-center" style="display: none; border-bottom: 2px solid #000; margin-bottom: 30px; padding-bottom: 20px;">
+                <h1 style="font-size: 26pt; margin: 0;">SmartCreator</h1>
+                <p style="font-size: 14pt; margin: 10px 0;"><strong>Projeto:</strong> {{ roteiro_obj.tema }}</p>
+                <p style="font-size: 10pt;">Gerado em: {{ roteiro_obj.data_criacao|date:"d/m/Y \à\s H:i" }}</p>
+            </div>
+
+            {{ conteudo_html }}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos de Interação */
+    .btn-copy-outline {
+        background: transparent;
+        border: 1px solid #0dcaf0;
+        color: #0dcaf0;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .btn-copy-outline:hover {
+        background: #0dcaf0;
+        color: #000;
+        transform: translateY(-2px);
+    }
+
+    /* Estilização do Conteúdo Renderizado (Markdown) */
+    .roteiro-renderizado h1, .roteiro-renderizado h2, .roteiro-renderizado h3 {
+        color: var(--amarelo-pastoso);
+        border-bottom: 1px solid rgba(253, 253, 150, 0.2);
+        padding-bottom: 8px;
+        margin-top: 35px;
+    }
+    .roteiro-renderizado p { margin-bottom: 1.5rem; font-size: 1.05rem; color: #e0e0e0; }
+    .roteiro-renderizado strong { color: var(--amarelo-pastoso); }
+
+    /* Toast de Notificação */
+    .copy-toast {
+        position: fixed; bottom: 20px; right: 20px; background: var(--amarelo-pastoso);
+        color: #2c3e50; padding: 12px 24px; border-radius: 10px; font-weight: bold;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 9999;
+    }
+
+    /* --- REGRAS DE IMPRESSÃO PROFISSIONAL --- */
+    @media print {
+        @page { size: A4; margin: 2cm; }
+        .no-print { display: none !important; }
+        .d-print-only { display: block !important; }
+        
+        body { background: white !important; color: black !important; }
+        .print-container { 
+            background: white !important; 
+            border: none !important; 
+            box-shadow: none !important; 
+            color: black !important;
+        }
+        .roteiro-renderizado { color: black !important; padding: 0 !important; }
+        .roteiro-renderizado h1, .roteiro-renderizado h2, .roteiro-renderizado h3 { 
+            color: black !important; border-bottom: 2px solid #000 !important; 
+        }
+        .roteiro-renderizado p { color: black !important; font-size: 12pt; }
+    }
+</style>
+
+<script>
+    function mostrarAviso(msg) {
+        const toast = document.createElement('div');
+        toast.className = 'copy-toast animate__animated animate__fadeInUp';
+        toast.innerText = msg + ' copiado! ✅';
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.remove(); }, 2000);
+    }
+
+    function copiarRoteiro() {
+        const text = document.getElementById('areaRoteiro').innerText;
+        navigator.clipboard.writeText(text).then(() => mostrarAviso('Roteiro completo'));
+    }
+
+    function copiarParte(secao, nome) {
+        const textoTodo = document.getElementById('areaRoteiro').innerText;
+        const regexMap = {
+            'titulos': /(?:Títulos|TITULOS).*?[:\-\n]([\s\S]*?)(?=\n\n|###|Descrição|DESC)/i,
+            'descricao': /(?:Descrição|DESCRICAO).*?[:\-\n]([\s\S]*?)(?=\n\n|###|Tags|TAGS)/i
+        };
+        const match = textoTodo.match(regexMap[secao]);
+        const resultado = match ? match[1].trim() : textoTodo;
+        navigator.clipboard.writeText(resultado).then(() => mostrarAviso(nome));
+    }
+
+    function copiarTags() {
+        const textoTodo = document.getElementById('areaRoteiro').innerText;
+        const regexTags = /(?:Tags|TAGS).*?[:\-\n]([\s\S]*?)$/i;
+        const match = textoTodo.match(regexTags);
+        if (match) {
+            let tags = match[1].trim().replace(/\n/g, ', ').replace(/,\s*,/g, ',');
+            navigator.clipboard.writeText(tags).then(() => mostrarAviso('Tags prontas'));
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+:root {
+    --azul-cinza: #5D6D7E;
+    --amarelo-pastoso: #FDFD96;
+    --branco-gelo: #F4F6F7;
+    --preto-suave: #2C3E50;
+}
+
+body {
+    background-color: var(--azul-cinza);
+    color: var(--branco-gelo);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.btn-primary {
+    background-color: var(--amarelo-pastoso);
+    color: var(--preto-suave);
+    border: none;
+    font-weight: bold;
+}
